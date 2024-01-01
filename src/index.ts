@@ -1,32 +1,24 @@
-const EventEmitter = require('events');
-const SerialPort = require('serialport');
-const cobs = require('cobs');
-const Parser = require('./Parser');
-const numberToByteArray = require('./utils/numberToByteArray');
+import EventEmitter from 'events';
+import { SerialPort } from 'serialport';
+import Parser from './Parser';
+import { math } from '@eriknoorland/nodebot-utils';
 
-/**
- * Gripper
- * @param {String} path
- * @return {Object}
- */
-const gripper = (path) => {
+const cobs = require('cobs');
+
+export default (path: string) => {
   const eventEmitter = new EventEmitter();
   const requestStartFlag = 0xA6;
 
-  let port;
+  let port: SerialPort;
   let parser;
 
-  /**
-   * Init
-   * @return {Promise}
-   */
-  function init() {
+  function init(): Promise<void> {
     return new Promise((resolve, reject) => {
       if (port) {
         setTimeout(reject, 0);
       }
 
-      port = new SerialPort(path, { baudRate: 115200 });
+      port = new SerialPort({ path, baudRate: 115200 });
       parser = new Parser();
 
       port.pipe(parser);
@@ -40,59 +32,39 @@ const gripper = (path) => {
     });
   }
 
-  /**
-   * Ask controller for ready response
-   * @return {Promise}
-   */
   function isReady() {
     writeToSerialPort([requestStartFlag, 0x01]);
 
     return Promise.resolve();
   }
 
-  /**
-   *
-   * @param {Number} angle
-   * @param {Number} duration
-   * @return {Promise}
-   */
-  function setJawAngle(angle, duration = 500) {
+  function setJawAngle(angle: number, duration = 500): Promise<void> {
     return new Promise((resolve) => {
-      const durationBytes = numberToByteArray(duration, 2);
+      const durationBytes = math.numberToByteArray(duration, 2);
 
       writeToSerialPort([requestStartFlag, 0x02, angle, ...durationBytes]);
       setTimeout(resolve, duration + 100);
     });
   }
 
-  /**
-   *
-   * @param {Number} angle
-   * @param {Number} duration
-   * @return {Promise}
-   */
-  function setLiftAngle(angle, duration = 500) {
+  function setLiftAngle(angle: number, duration = 500): Promise<void> {
     return new Promise((resolve) => {
-      const durationBytes = numberToByteArray(duration, 2);
+      const durationBytes = math.numberToByteArray(duration, 2);
 
       writeToSerialPort([requestStartFlag, 0x03, angle, ...durationBytes]);
       setTimeout(resolve, duration + 100);
     });
   }
 
-  /**
-   * Closes the serial connection
-   * @returns {Promise}
-   */
-  function close() {
+  function close(): Promise<void> {
     return new Promise(resolve => {
-      port.close(error => {
+      port.close(() => {
         resolve();
       });
     });
   }
 
-  function writeToSerialPort(data) {
+  function writeToSerialPort(data: number[]) {
     port.write(cobs.encode(Buffer.from(data), true));
   }
 
@@ -104,7 +76,7 @@ const gripper = (path) => {
     });
   }
 
-  return {
+  return Object.freeze({
     close,
     init,
     isReady,
@@ -112,7 +84,5 @@ const gripper = (path) => {
     setLiftAngle,
     on: eventEmitter.on.bind(eventEmitter),
     off: eventEmitter.off.bind(eventEmitter),
-  };
+  });
 };
-
-module.exports = gripper;
