@@ -1,4 +1,4 @@
-const Gripper = require('../index');
+const Gripper = require('../dist/index.cjs');
 const gripper = Gripper('/dev/tty.usbserial-14130');
 
 const jawCloseAngle = 28;

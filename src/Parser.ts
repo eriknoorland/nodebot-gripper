@@ -1,14 +1,12 @@
-const Transform = require('stream').Transform;
+import { Transform } from 'stream';
+
 const cobs = require('cobs');
 const numDescriptorBytes = 4;
 
-/**
- * Parser
- */
 class Parser extends Transform {
-  /**
-   * Constructor
-   */
+  private startFlags: Buffer;
+  private buffer: Buffer;
+
   constructor() {
     super();
 
@@ -16,13 +14,7 @@ class Parser extends Transform {
     this.buffer = Buffer.alloc(0);
   }
 
-  /**
-   * Transform
-   * @param {Buffer} chunk
-   * @param {String} encoding
-   * @param {Function} callback
-   */
-  _transform(chunk, encoding, callback) {
+  _transform(chunk: Buffer, encoding: string, callback: Function) {
     this.buffer = Buffer.concat([this.buffer, chunk]);
 
     for (let j = 0; j < this.buffer.length; j++) {
@@ -36,8 +28,8 @@ class Parser extends Transform {
           if (this.buffer.length > packetStart + numDescriptorBytes + dataLength) {
             const packetEnd = packetStart + numDescriptorBytes + dataLength + 1;
             const packet = this.buffer.slice(packetStart, packetEnd);
-            const decodedPacket = cobs.decode(packet);
-            const packetData = [];
+            const decodedPacket: Buffer = cobs.decode(packet);
+            const packetData: number[] = [];
 
             this.buffer = this.buffer.slice(packetEnd);
             j = 0;
@@ -65,4 +57,4 @@ class Parser extends Transform {
   }
 }
 
-module.exports = Parser;
+export default Parser;
