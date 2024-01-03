@@ -1,5 +1,5 @@
 {
-  "name": "nodebot-gripper",
+  "name": "@eriknoorland/nodebot-gripper",
   "version": "1.0.0",
   "description": "A node module to control a gripper",
   "files": [
