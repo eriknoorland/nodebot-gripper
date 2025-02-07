@@ -1,12 +1,13 @@
-import EventEmitter from 'events';
+import { math } from '@eriknoorland/nodebot-utils';
 import { SerialPort } from 'serialport';
 import Parser from './Parser';
-import { math } from '@eriknoorland/nodebot-utils';
+import TypedEventEmitter from './TypedEventEmitter';
+import { Gripper, GripperEvents } from './interfaces';
 
 const cobs = require('cobs');
 
-export default (path: string) => {
-  const eventEmitter = new EventEmitter();
+export default (path: string): Gripper => {
+  const eventEmitter = new TypedEventEmitter<GripperEvents>();
   const requestStartFlag = 0xA6;
 
   let port: SerialPort;
